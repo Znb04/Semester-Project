@@ -1,5 +1,5 @@
 #include "raylib.h"
-typedef enum { START, PLAYING, PAUSED, GAMEOVER } GameState;
+typedef enum { START, PLAYING, PAUSED, GAMEOVER, BOOKRIDDLE } GameState;
 
 int main()
 {
@@ -27,6 +27,11 @@ int main()
     Rectangle player = { 700, 500, 200, 200 };//MARYAM
     //MARYAM
     int lives = 3;
+    int bookSolved = 0;      // 0 = not solved, 1 = solved
+    char answer[20] = "";    // what the player types
+    int letterCount = 0;     // how many letters typed
+    bool submitted = false;  // has the player pressed ENTER yet?
+    int result = 0;
 
     // MAIN GAME LOOP
     while (!WindowShouldClose())
@@ -112,7 +117,7 @@ int main()
             DrawText("COMES IN AND KILLS YOU", (screenWidth - MeasureText("COMES IN AND KILLS YOU", 22)) / 2, 410, 22, LIGHTGRAY);
             DrawText("PRESS S TO START!", (screenWidth - MeasureText("PRESS S TO START!", 36)) / 2, 520, 36, YELLOW);
         }
-        else if (state == PLAYING || state == PAUSED)
+        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE)//MARYAM
         {
             ClearBackground(DARKGRAY);
             // ROOM
@@ -161,6 +166,40 @@ int main()
                 DrawText("C : CONTINUE", (screenWidth - MeasureText("C : CONTINUE", 36)) / 2, 260, 36, WHITE);
                 DrawText("S : RESTART", (screenWidth - MeasureText("S : RESTART", 36)) / 2, 330, 36, WHITE);
                 DrawText("G : END GAME", (screenWidth - MeasureText("G : END GAME", 36)) / 2, 400, 36, WHITE);
+            }
+            else if (state == BOOKRIDDLE)// MARYAM
+            {
+                DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
+                DrawText("BOOK RIDDLE", (screenWidth - MeasureText("BOOK RIDDLE", 60)) / 2, 120, 50, WHITE);
+                if (bookSolved == 1 && result == 0)
+                {
+                    //IF OPEN AGAINAFTER SOLVED
+                    DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
+                    DrawText("PRESS R TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS R TO RETURN TO THE GAME.", 24)) / 2, 620, 24, LIGHTGRAY);
+                }
+                else
+                {
+                    DrawText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", (screenWidth - MeasureText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", 30)) / 2, 220, 30, WHITE);
+                    DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
+                    DrawText(answer, 310, 310, 30, BLACK);//TYPED TEXT
+                    if (!submitted)
+                    {
+                        DrawText("TYPE YOUR ANSWER AND PRESS ENTER!", (screenWidth - MeasureText("TYPE YOUR ANSWER AND PRESS ENTER!", 22)) / 2, 370, 22, LIGHTGRAY);
+                    }
+                    else
+                    {
+                        if (result == 1)
+                        {
+                            DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
+                        }
+                        else if (result == 2)
+                        {
+                            DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText("WRONG ANSWER! %d LIVES LEFT:(", lives), 36) / 2, 420, 36, RED);
+                            DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 620, 24, LIGHTGRAY);
+                        }
+                    }
+                }
+
             }
         }
         else if (state == GAMEOVER)//ZAINAB
