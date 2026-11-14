@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ESCAPE-ROOM-GAME.vcxproj" Id="8c48d78f-edc2-411c-858b-780fc28b8a9b" />
+</Solution>
