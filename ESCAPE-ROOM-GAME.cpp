@@ -18,9 +18,12 @@ int main()
     Texture2D windowTexture = LoadTexture("windowhehe.png");
     Texture2D shelfTexture = LoadTexture("SHELF.png");
     Texture2D computerTexture = LoadTexture("comp.png");
+    Texture2D playerTexture = LoadTexture("player150.png");
 
     GameState state = START;
     Rectangle computer = { 0, 232, 145, 145 };//ZAINAB
+    // PLAYER SETTINGS
+    Rectangle player = { 700, 500, 200, 200 };//MARYAM
 
     // MAIN GAME LOOP
     while (!WindowShouldClose())
@@ -32,6 +35,31 @@ int main()
             {
                 state = PLAYING;
             }
+        }
+        else if (state == PLAYING) //ZAINAB
+        {
+            float speed = 350.0f;
+            float ft = GetFrameTime();
+            if (IsKeyDown(KEY_UP))
+                player.y = player.y - (ft * speed);
+
+            if (IsKeyDown(KEY_DOWN))
+                player.y = player.y + (ft * speed);
+
+            if (IsKeyDown(KEY_LEFT))
+                player.x = player.x - (ft * speed);
+
+            if (IsKeyDown(KEY_RIGHT))
+                player.x = player.x + (ft * speed);
+
+            if (player.x > screenWidth - player.width)
+                player.x = screenWidth - player.width;
+            if (player.y > screenHeight - player.height)
+                player.y = screenHeight - player.height;
+            if (player.x < 0)
+                player.x = 0;
+            if (player.y < wallHeight - player.height)
+                player.y = wallHeight - player.height;
         }
 
 
@@ -81,7 +109,8 @@ int main()
                 { 0, 0, (float)doorTexture.width, (float)doorTexture.height },
                 { 230, wallHeight - 235, (float)doorTexture.width, (float)doorTexture.height },
                 { 0,0 }, 0.0f, WHITE);
-
+            // Player 
+            DrawTexture(playerTexture, player.x, player.y, WHITE);
             //COMPUTER
             DrawTexture(computerTexture, computer.x, computer.y, WHITE);
         }
@@ -96,6 +125,7 @@ int main()
     UnloadTexture(windowTexture);
     UnloadTexture(shelfTexture);
     UnloadTexture(computerTexture);
+    UnloadTexture(playerTexture);
 
     CloseWindow();
     return 0;
