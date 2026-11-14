@@ -19,11 +19,14 @@ int main()
     Texture2D shelfTexture = LoadTexture("SHELF.png");
     Texture2D computerTexture = LoadTexture("comp.png");
     Texture2D playerTexture = LoadTexture("player150.png");
+    Texture2D livesTexture = LoadTexture("LIVES.png");
 
     GameState state = START;
     Rectangle computer = { 0, 232, 145, 145 };//ZAINAB
     // PLAYER SETTINGS
     Rectangle player = { 700, 500, 200, 200 };//MARYAM
+    //MARYAM
+    int lives = 3;
 
     // MAIN GAME LOOP
     while (!WindowShouldClose())
@@ -100,8 +103,13 @@ int main()
             //SHELF
             DrawTexture(shelfTexture, 380, 189, WHITE);
 
+            //LIVE 
+            DrawText(TextFormat("%d LIVES", lives), 20, 20, 30, BLACK);
+
             //WINDOW
             DrawTexture(windowTexture, 600, 150, WHITE);
+            //LIVES
+            DrawTexture(livesTexture, 150, 15, WHITE);
 
             //DOOR
             //DrawRectangle(250, wallHeight-152, 80, 155, DARKPURPLE);//AS y(axis point)+235(doorheight)=wallHeight so..
@@ -126,6 +134,8 @@ int main()
     UnloadTexture(shelfTexture);
     UnloadTexture(computerTexture);
     UnloadTexture(playerTexture);
+    UnloadTexture(livesTexture);
+    UnloadTexture(computerTexture);
 
     CloseWindow();
     return 0;
