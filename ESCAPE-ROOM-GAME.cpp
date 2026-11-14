@@ -7,6 +7,7 @@ int main()
     const int screenWidth = 1000;
     const int screenHeight = 700;
     const int wallHeight = 400;
+    const int bookrangex1 = 340, bookrangex2 = 600, bookrangey = 300, comprangex1 = 0, comprangex2 = 180, comprangey = 400;
 
     InitWindow(screenWidth, screenHeight, "ESCAPE ROOM");
     SetTargetFPS(60);
@@ -23,6 +24,7 @@ int main()
 
     GameState state = START;
     Rectangle computer = { 0, 232, 145, 145 };//ZAINAB
+    Rectangle collisionArea = { 0,0,0,0 };
     // PLAYER SETTINGS
     Rectangle player = { 700, 500, 200, 200 };//MARYAM
     //MARYAM
@@ -68,6 +70,31 @@ int main()
                 player.x = 0;
             if (player.y < wallHeight - player.height)
                 player.y = wallHeight - player.height;
+
+            //COLLISION DETECTION
+            if (CheckCollisionRecs(player, computer))
+            {
+                collisionArea = GetCollisionRec(player, computer);
+
+                if (collisionArea.width > collisionArea.height) {//vertical collision
+                    if (player.y < computer.y)//collison from bottom
+                        player.y = player.y - collisionArea.height;
+                    else//collison from toph
+                        player.y = player.y + collisionArea.height;
+                }
+                if (collisionArea.height > collisionArea.width) {//horizontal collision
+                    if (player.x < computer.x)//collison from left
+                        player.x = player.x - collisionArea.width;
+                    else//collison from right
+                        player.x = player.x + collisionArea.width;
+                }
+            }
+
+            //INTERACTIONS
+            if (IsKeyPressed(KEY_E) && (player.x > bookrangex1 && player.x < bookrangex2) && (player.y < bookrangey)) // ZAINAB
+            {
+                state = BOOKRIDDLE;//MARYAM
+            }
             if (IsKeyPressed(KEY_P))
             {
                 state = PAUSED;
@@ -139,6 +166,9 @@ int main()
 
             //SHELF
             DrawTexture(shelfTexture, 380, 189, WHITE);
+            if ((player.x > bookrangex1 && player.x < bookrangex2) && (player.y < bookrangey)) {
+                DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
+            }
 
             //LIVE 
             DrawText(TextFormat("%d LIVES", lives), 20, 20, 30, BLACK);
@@ -158,6 +188,9 @@ int main()
             DrawTexture(playerTexture, player.x, player.y, WHITE);
             //COMPUTER
             DrawTexture(computerTexture, computer.x, computer.y, WHITE);
+            if ((player.x > comprangex1 && player.x < comprangex2) && (player.y < comprangey)) {
+                DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
+            }
 
             if (state == PAUSED)//ZAINAB
             {
