@@ -63,6 +63,38 @@ int main()
                 player.x = 0;
             if (player.y < wallHeight - player.height)
                 player.y = wallHeight - player.height;
+            if (IsKeyPressed(KEY_P))
+            {
+                state = PAUSED;
+            }
+
+        }
+        else if (state == PAUSED)// ZAINAB
+        {
+            if (IsKeyPressed(KEY_C))
+            {
+                state = PLAYING;
+            }
+            if (IsKeyPressed(KEY_S))
+            {
+                player.x = 700;
+                player.y = 500;
+                state = PLAYING;
+            }
+            if (IsKeyPressed(KEY_G))
+            {
+                state = GAMEOVER;
+            }
+        }
+        else if (state == GAMEOVER)//ZAINAB
+        {
+            if (IsKeyPressed(KEY_S))
+            {
+                player.x = 700;
+                player.y = 500;
+
+                state = PLAYING;
+            }
         }
 
 
@@ -121,6 +153,21 @@ int main()
             DrawTexture(playerTexture, player.x, player.y, WHITE);
             //COMPUTER
             DrawTexture(computerTexture, computer.x, computer.y, WHITE);
+
+            if (state == PAUSED)//ZAINAB
+            {
+                DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
+                DrawText("PAUSED", (screenWidth - MeasureText("PAUSED", 60)) / 2, 150, 60, WHITE);
+                DrawText("C : CONTINUE", (screenWidth - MeasureText("C : CONTINUE", 36)) / 2, 260, 36, WHITE);
+                DrawText("S : RESTART", (screenWidth - MeasureText("S : RESTART", 36)) / 2, 330, 36, WHITE);
+                DrawText("G : END GAME", (screenWidth - MeasureText("G : END GAME", 36)) / 2, 400, 36, WHITE);
+            }
+        }
+        else if (state == GAMEOVER)//ZAINAB
+        {
+            ClearBackground(BLACK);
+            DrawText("GAME OVER", (screenWidth - MeasureText("GAME OVER", 70)) / 2, 250, 70, RED);
+            DrawText("PRESS S TO RESTART!", (screenWidth - MeasureText("PRESS S TO RESTART", 30)) / 2, 380, 30, WHITE);
         }
         EndDrawing();
     }
