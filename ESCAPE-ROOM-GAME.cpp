@@ -1,7 +1,8 @@
 #include "raylib.h"
-#include<cstring>
+#include<string>
 #include<cctype>
-typedef enum { START, PLAYING, PAUSED, GAMEOVER, BOOKRIDDLE } GameState;
+using namespace std;
+typedef enum { START, PLAYING, PAUSED, GAMEOVER, BOOKRIDDLE,COMP } GameState;
 
 int main()
 {
@@ -23,6 +24,7 @@ int main()
     Texture2D computerTexture = LoadTexture("comp.png");
     Texture2D playerTexture = LoadTexture("player150.png");
     Texture2D livesTexture = LoadTexture("LIVES.png");
+    Texture2D sofaTexture = LoadTexture("SOFA.png");
 
     GameState state = START;
     Rectangle computer = { 0, 232, 145, 145 };//ZAINAB
@@ -32,11 +34,15 @@ int main()
     //MARYAM
     int lives = 3;
     int bookSolved = 0;      // 0 = not solved, 1 = solved
-    char answer[20] = "";    // what the player types
+    string word = ""; // what the player types
     int letterCount = 0;     // how many letters typed
-    bool submitted = false;  // has the player pressed ENTER yet?
-    int result = 0;
-
+    bool submittedR= false;  // has the player pressed ENTER yet?
+    int resultR= 0;
+    //zainab
+    int compsolved1= 0;// RIDDLE IN COMP
+	string answerC1= "";
+	bool submittedC1= false;
+    int resultC1= 0;
     // MAIN GAME LOOP
     while (!WindowShouldClose())
     {
@@ -97,11 +103,20 @@ int main()
             {
                 state = BOOKRIDDLE;//MARYAM
                 letterCount = 0;
-                answer[0] = '\0';
-                submitted = false;
-                result = 0;
+                word = "";
+                submittedR= false;
+                resultR = 0;
                 while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
 
+            }
+            if (IsKeyPressed(KEY_E) && (player.x > comprangex1 && player.x < comprangex2) && (player.y < comprangey))
+            {
+				state = COMP;//zainab 
+                answerC1= "";
+                submittedC1 = false;
+                resultC1 = 0;
+                while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
+                
             }
             if (IsKeyPressed(KEY_P))
             {
@@ -111,46 +126,76 @@ int main()
         }
         else if (state == BOOKRIDDLE)// MARYAM
         {
-            if (bookSolved == 0 && !submitted)
+            if (bookSolved == 0 && !submittedR)
             {
-                int letter = GetCharPressed();
-                if (letter > 0 && letterCount < 19)
+                int key = GetCharPressed();
+                while (key > 0)
                 {
-                    answer[letterCount] = (char)tolower(letter);
-                    letterCount++;
-                    answer[letterCount] = '\0';
+                    if (key >= 32 && key <= 125)   // printable characters, including spaces
+                        word +=tolower( (char)key);
+                    key = GetCharPressed();
                 }
 
                 // 2) Enter: a separate check, outside the typing part
                 if (IsKeyPressed(KEY_ENTER))
                 {
-                    submitted = true;
-                    if (strcmp(answer, "keyboard") == 0)
+                    submittedR = true;
+                    if (word == "keyboard")
                     {
                         bookSolved = 1;
-                        result = 1;
+                        resultR = 1;
                     }
                     else
                     {
                         lives--;
                         if (lives == 0)
                         {
-                            lives = 3;//haaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                            lives = 3;
                             state = GAMEOVER;
                         }
-                        result = 2;
+                        resultR = 2;
                     }
                 }
 
             }
 
-            if (IsKeyPressed(KEY_R) && (submitted || bookSolved == 1))
+            if (IsKeyPressed(KEY_R) && (submittedR || bookSolved == 1))
             {
-
-
                 state = PLAYING;
             }
         }
+        else if (state == COMP)// comp riddle
+        {//WORKING
+            if (compsolved1 == 0 && !submittedC1) {
+                int key = GetCharPressed();
+                while (key > 0) {
+					answerC1 += tolower((char)key);
+                    key = GetCharPressed();
+                }
+                if (IsKeyPressed(KEY_ENTER)) {
+                    submittedC1 = true;
+                    if (answerC1  == "hurry up") {
+                        compsolved1 = 1;
+                        resultC1 = 1;
+                    }
+                    else
+                    {
+						lives--;
+						if (lives == 0) {
+							lives = 3;
+							state = GAMEOVER;
+						}
+						resultC1 = 2;// wrong answer
+                    }
+                }
+            }
+            if (IsKeyPressed(KEY_R) && (submittedC1 || compsolved1 == 1))
+            {
+                state = PLAYING;
+            }
+
+
+            }
         else if (state == PAUSED)// ZAINAB
         {
             if (IsKeyPressed(KEY_C))
@@ -194,7 +239,7 @@ int main()
             DrawText("COMES IN AND KILLS YOU", (screenWidth - MeasureText("COMES IN AND KILLS YOU", 22)) / 2, 410, 22, LIGHTGRAY);
             DrawText("PRESS S TO START!", (screenWidth - MeasureText("PRESS S TO START!", 36)) / 2, 520, 36, YELLOW);
         }
-        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE)//MARYAM
+        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state==COMP)//MARYAM
         {
             ClearBackground(DARKGRAY);
             // ROOM
@@ -211,14 +256,19 @@ int main()
                 { 0,(float)wallHeight,(float)screenWidth, (float)(screenHeight - wallHeight) },//x,y,width,height
                 { 0,0 }, 0.0f, WHITE);//color
 
+            //SOFA
+            DrawTexture(sofaTexture, 730, 380, WHITE);
+
             //CLOCK
             DrawTexture(clockTexture, 450, 50, WHITE);
 
             //SHELF
             DrawTexture(shelfTexture, 380, 189, WHITE);
-            if ((player.x > bookrangex1 && player.x < bookrangex2) && (player.y < bookrangey)) {
+            if ((player.x > bookrangex1 && player.x < bookrangex2) && (player.y < bookrangey))
+            {
                 DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
             }
+
 
             //LIVE 
             DrawText(TextFormat("%d LIVES", lives), 20, 20, 30, BLACK);
@@ -238,7 +288,7 @@ int main()
             DrawTexture(playerTexture, player.x, player.y, WHITE);
             //COMPUTER
             DrawTexture(computerTexture, computer.x, computer.y, WHITE);
-            if ((player.x > comprangex1 && player.x < comprangex2) && (player.y < comprangey)) {
+            if ((player.x > comprangex1+20 && player.x < comprangex2+20) && (player.y < comprangey+20)) {
                 DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
             }
 
@@ -254,35 +304,72 @@ int main()
             {
                 DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
                 DrawText("BOOK RIDDLE", (screenWidth - MeasureText("BOOK RIDDLE", 60)) / 2, 120, 50, WHITE);
-                if (bookSolved == 1 && result == 0)
+                if (bookSolved == 1 && resultR == 0)
                 {
                     //IF OPEN AGAINAFTER SOLVED
                     DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
-                    DrawText("PRESS R TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS R TO RETURN TO THE GAME.", 24)) / 2, 620, 24, LIGHTGRAY);
+                    DrawText("PRESS R TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS R TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
                 }
                 else
                 {
                     DrawText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", (screenWidth - MeasureText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", 30)) / 2, 220, 30, WHITE);
                     DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
-                    DrawText(answer, 310, 310, 30, BLACK);//TYPED TEXT
-                    if (!submitted)
+                    DrawText(word.c_str(), 310, 310, 30, BLACK);//TYPED TEXT
+                    if (!submittedR)
                     {
                         DrawText("TYPE YOUR ANSWER AND PRESS ENTER!", (screenWidth - MeasureText("TYPE YOUR ANSWER AND PRESS ENTER!", 22)) / 2, 370, 22, LIGHTGRAY);
                     }
                     else
                     {
-                        if (result == 1)
+                        if (resultR == 1)
                         {
                             DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
+                            DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
                         }
-                        else if (result == 2)
+                        else if (resultR == 2)
                         {
-                            DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText("WRONG ANSWER! %d LIVES LEFT:(", lives), 36) / 2, 420, 36, RED);
-                            DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 620, 24, LIGHTGRAY);
+                            DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
+                            DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
                         }
                     }
                 }
 
+            }
+            else if (state == COMP)
+            {
+				DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
+				DrawText("COMPUTER RIDDLE", (screenWidth - MeasureText("COMPUTER RIDDLE", 60)) / 2, 120, 50, WHITE);
+                if (compsolved1 == 1 && resultC1 == 0)
+                {
+                    //if open again after solving
+                    DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
+                    DrawText("PRESS R TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS R TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
+                 
+                }
+                else
+                {
+                     DrawText("SOLVE THE SEQUENCE!", (screenWidth - MeasureText("SOLVE THE SEQUENCE!", 30)) / 2, 220, 30, WHITE);
+                     DrawText("IVSSZ VQ (HINT:+1 OR -1)", (screenWidth - MeasureText("IVSSZ VQ (HINT:+1 OR -1)", 30)) / 2, 260, 30, WHITE);
+                     DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
+                     DrawText(answerC1.c_str(), 310, 310, 30, BLACK);
+                     if (!submittedC1)
+                     {
+                         DrawText("TYPE ANSWER AND PRESS ENTER!", (screenWidth - MeasureText("TYPE ANSWER AND PRESS ENTER!", 22)) / 2, 370, 22, WHITE);
+                     }
+                     else
+                     {
+                         if (resultC1 == 1)
+                         {
+                             DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
+                             DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
+                         }
+                         else if (resultC1 == 2)
+                         {
+                             DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
+                             DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
+                         }
+                     }
+                }
             }
         }
         else if (state == GAMEOVER)//ZAINAB
@@ -305,6 +392,7 @@ int main()
     UnloadTexture(playerTexture);
     UnloadTexture(livesTexture);
     UnloadTexture(computerTexture);
+	UnloadTexture(sofaTexture);
 
     CloseWindow();
     return 0;
