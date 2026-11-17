@@ -1,4 +1,6 @@
 #include "raylib.h"
+#include<cstring>
+#include<cctype>
 typedef enum { START, PLAYING, PAUSED, GAMEOVER, BOOKRIDDLE } GameState;
 
 int main()
@@ -94,12 +96,60 @@ int main()
             if (IsKeyPressed(KEY_E) && (player.x > bookrangex1 && player.x < bookrangex2) && (player.y < bookrangey)) // ZAINAB
             {
                 state = BOOKRIDDLE;//MARYAM
+                letterCount = 0;
+                answer[0] = '\0';
+                submitted = false;
+                result = 0;
+                while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
+
             }
             if (IsKeyPressed(KEY_P))
             {
                 state = PAUSED;
             }
 
+        }
+        else if (state == BOOKRIDDLE)// MARYAM
+        {
+            if (bookSolved == 0 && !submitted)
+            {
+                int letter = GetCharPressed();
+                if (letter > 0 && letterCount < 19)
+                {
+                    answer[letterCount] = (char)tolower(letter);
+                    letterCount++;
+                    answer[letterCount] = '\0';
+                }
+
+                // 2) Enter: a separate check, outside the typing part
+                if (IsKeyPressed(KEY_ENTER))
+                {
+                    submitted = true;
+                    if (strcmp(answer, "keyboard") == 0)
+                    {
+                        bookSolved = 1;
+                        result = 1;
+                    }
+                    else
+                    {
+                        lives--;
+                        if (lives == 0)
+                        {
+                            lives = 3;//haaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                            state = GAMEOVER;
+                        }
+                        result = 2;
+                    }
+                }
+
+            }
+
+            if (IsKeyPressed(KEY_R) && (submitted || bookSolved == 1))
+            {
+
+
+                state = PLAYING;
+            }
         }
         else if (state == PAUSED)// ZAINAB
         {
