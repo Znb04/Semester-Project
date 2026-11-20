@@ -2,7 +2,7 @@
 #include<string>
 #include<cctype>
 using namespace std;
-typedef enum { START, PLAYING, PAUSED, GAMEOVER, BOOKRIDDLE,COFFIN, COMPPASSWORD } GameState;
+typedef enum { START, PLAYING, PAUSED, GAMEOVER, BOOKRIDDLE,COFFIN, COMPPASSWORD , HOLE} GameState;
 
 int main()
 {
@@ -10,9 +10,10 @@ int main()
     const int screenWidth = 1000;
     const int screenHeight = 700;
     const int wallHeight = 400;
-    const int bookrangex1 = 340, bookrangex2 = 600, bookrangey = 300, comprangex1 = 0, comprangex2 = 180, comprangey = 400;
     float timeLeft = 120.0f;
     bool gameStart = true;
+    //
+    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200},coffinArea = { 780, 300, 220, 50 },holeArea = { 840, 560, 220, 160 };
 
     InitWindow(screenWidth, screenHeight, "ESCAPE ROOM");
     SetTargetFPS(60);
@@ -24,42 +25,51 @@ int main()
     Texture2D windowTexture = LoadTexture("windowhehe.png");
     Texture2D shelfTexture = LoadTexture("SHELF.png");
     Texture2D computerTexture = LoadTexture("comp.png");
-    Texture2D playerTexture = LoadTexture("player150.png");
+    Texture2D playerTexture = LoadTexture("player150.reset.png");
     Texture2D livesTexture = LoadTexture("LIVES.png");
-    Texture2D sofaTexture = LoadTexture("COUCH.png");
+    Texture2D sofaTexture = LoadTexture("couch.png");
     Texture2D skeletonTexture = LoadTexture("TIMESKELETON.png");
     Texture2D coffinTexture = LoadTexture("COFFINS.png");
     Texture2D skullsTexture = LoadTexture("skull.png");
     Texture2D handsTexture = LoadTexture("HANDS.png");
     Texture2D cracksTexture = LoadTexture("cracks.png");
+    Texture2D holeTexture = LoadTexture("HOLE.png");
+    Texture2D chainsTexture = LoadTexture("chainsR.png");
     
 
     GameState state = START;
-    Rectangle computer = { 0, 232, 145, 145 };//ZAINAB
+    Rectangle computer = { 0, 232, (float)computerTexture.width, (float)computerTexture.height };//ZAINAB
     Rectangle collisionArea = { 0,0,0,0 };
     // PLAYER SETTINGS
-    Rectangle player = { 700, 500, 200, 200 };//MARYAM
+    Rectangle player = { 700, 500,(float)playerTexture.width, (float)playerTexture.height };//MARYAM
     //MARYAM
     int lives = 3;
     int bookSolved = 0;      // 0 = not solved, 1 = solved
     string word = ""; // what the player types
-    int letterCount = 0;     // how many letters typed
     bool submittedR = false;  // has the player pressed ENTER yet?
     int resultR = 0;
     //COMP PASSWORD
-    int passSolved=0, resultCp=0;//RESULT CP DEALS WITH BEGIN DRAWING AND PASS SOLVE DEALS WITH BAGIN DRAWING
+    int passSolved = 0;
+     int  resultCp=0;//RESULT CP DEALS WITH BEGIN DRAWING AND PASS SOLVE DEALS WITH BAGIN DRAWING
     string answerCp="";
     bool submittedCp=false;
-
-    //zainab
-    //int coffinsolved1 = 0;// RIDDLE IN COMP
-    //string answerC1 = "";
-    //bool submittedC1 = false;
-    //int resultC1 = 0;
+    //STRICK
+    int holeSolved = 0;
+    string answerHole = "";
+    bool submittedHole = false;
+    int resultHole = 0;
+    //COFFIN
+    int coffinsolved1 = 0;// RIDDLE IN COMP
+    string answerC1 = "";
+    bool submittedC1 = false;
+    int resultC1 = 0;
+    // we gotta make detection
+    bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false;
     // MAIN GAME LOOP
     while (!WindowShouldClose())
     {
-        if (state == PLAYING || state == BOOKRIDDLE || state == COFFIN || state==COMPPASSWORD)
+
+        if (state == PLAYING || state == BOOKRIDDLE || state == COFFIN || state==COMPPASSWORD || state==HOLE)
         {
             timeLeft = timeLeft - GetFrameTime();
         }
@@ -80,6 +90,11 @@ int main()
         else if (state == PLAYING) //ZAINAB
         {
             //START STATE
+            nearBook = CheckCollisionRecs(player, bookArea);
+            nearComp = CheckCollisionRecs(player, compArea);
+            nearCoffin = CheckCollisionRecs(player, coffinArea);
+            nearHole = CheckCollisionRecs(player, holeArea);
+
             float speed = 350.0f;
             float ft = GetFrameTime();
             if (IsKeyDown(KEY_UP))
@@ -100,8 +115,8 @@ int main()
                 player.y = screenHeight - player.height;
             if (player.x < 0)
                 player.x = 0;
-            if (player.y < wallHeight - player.height)
-                player.y = wallHeight - player.height;
+            if (player.y < wallHeight - player.height + 20)
+                player.y = wallHeight - player.height + 20;
 
             //COLLISION DETECTION
             if (CheckCollisionRecs(player, computer))
@@ -123,29 +138,44 @@ int main()
             }
 
             //INTERACTIONS
-            if (IsKeyPressed(KEY_E) && (player.x > bookrangex1 && player.x < bookrangex2) && (player.y < bookrangey)) // ZAINAB
+            if (IsKeyPressed(KEY_E))
             {
-                state = BOOKRIDDLE;//MARYAM
-                letterCount = 0;
-                word = "";
-                submittedR = false;
-                resultR = 0;
-                while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
+                if (nearBook) // ZAINAB
+                {
+                    state = BOOKRIDDLE;//MARYAM
 
-            }
-            if (IsKeyPressed(KEY_E) && (player.x > comprangex1 && player.x < comprangex2) && (player.y < comprangey))
-            {
-                //state = COMP;//zainab 
-                //answerC1 = "";
-                //submittedC1 = false;
-                //resultC1 = 0;
-                //while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
-                state = COMPPASSWORD;
-                answerCp = "";
-                submittedCp = false;
-                resultCp = 0;
-                while (GetCharPressed() > 0) {}
+                    word = "";
+                    submittedR = false;
+                    resultR = 0;
+                    while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
 
+                }
+                else if (nearComp)
+                {
+                    state = COMPPASSWORD;
+                    answerCp = "";
+                    submittedCp = false;
+                    resultCp = 0;
+                    while (GetCharPressed() > 0) {}
+
+                }
+                else if (nearCoffin)
+                {
+                    state = COFFIN;//zainab 
+                    answerC1 = "";
+                    submittedC1 = false;
+                    resultC1 = 0;
+                    while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
+                }
+                else if (nearHole) // ZAINAB
+                {
+                    state = HOLE;
+                    answerHole = "";
+                    submittedHole = false;
+                    resultHole = 0;
+                    while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
+
+                }
             }
             if (IsKeyPressed(KEY_P))
             {
@@ -158,108 +188,167 @@ int main()
             if (bookSolved == 0 && !submittedR)
             {
                 int key = GetCharPressed();
-                while (key > 0)
+                if (IsKeyPressed(KEY_TAB))
                 {
-                    if (key >= 32 && key <= 125)   // printable characters, including spaces
-                        word += tolower((char)key);
-                    key = GetCharPressed();
+                    state=PLAYING;
                 }
-
-                // 2) Enter: a separate check, outside the typing part
-                if (IsKeyPressed(KEY_ENTER))
+                else
                 {
-                    submittedR = true;
-                    if (word == "keyboard")
+                    while (key > 0)
                     {
-                        bookSolved = 1;
-                        resultR = 1;
+                        if (key >= 32 && key <= 125)   // printable characters, including spaces
+                            word += tolower((char)key);
+                            key = GetCharPressed();
                     }
-                    else
+
+                    // 2) Enter: a separate check, outside the typing part
+                    if (IsKeyPressed(KEY_ENTER))
                     {
-                        lives--;
-                        if (lives == 0)
+                        submittedR = true;
+                        if (word == "keyboard")
                         {
-                            timeLeft = 120.0f;
-                            lives = 3;
-                            state = GAMEOVER;
+                            bookSolved = 1;
+                            resultR = 1;
                         }
-                        resultR = 2;
+                        else
+                        {
+                            lives--;
+                            if (lives == 0)
+                            {
+                                timeLeft = 120.0f;
+                                lives = 3;
+                                state = GAMEOVER;
+                            }
+                            resultR = 2;
+                        }
                     }
                 }
 
             }
 
-            if (IsKeyPressed(KEY_R) && (submittedR || bookSolved == 1))
+            if (IsKeyPressed(KEY_TAB) && (submittedR || bookSolved == 1))
             {
                 state = PLAYING;
             }
         }
-        //else if (state == COFFIN)// comp riddle
-        //{//WORKING
-        //    if (coffinsolved1 == 0 && !submittedC1) {
-        //        int key = GetCharPressed();
-        //        while (key > 0) {
-        //            answerC1 += tolower((char)key);
-        //            key = GetCharPressed();
-        //        }
-        //        if (IsKeyPressed(KEY_ENTER)) {
-        //            submittedC1 = true;
-        //            if (answerC1 == "hurry up") {
-        //                coffinsolved1 = 1;
-        //                resultC1 = 1;
-        //            }
-        //            else
-        //            {
-        //                lives--;
-        //                if (lives == 0) {
-        //                    timeLeft = 120.0f;
-        //                    lives = 3;
-        //                    state = GAMEOVER;
-        //                }
-        //                resultC1 = 2;// wrong answer
-        //            }
-        //        }
-        //    }
-        //    if (IsKeyPressed(KEY_R) && (submittedC1 || coffinsolved1 == 1))
-        //    {
-        //        state = PLAYING;
-        //    }
-        //}
+        else if (state == COFFIN)// comp riddle
+        {//WORKING
+            if (coffinsolved1 == 0 && !submittedC1) {
+                int key = GetCharPressed();
+                if (IsKeyPressed(KEY_TAB))
+                {
+                    state = PLAYING;
+                }
+                else
+                {
+                    while (key > 0) {
+                        answerC1 += tolower((char)key);
+                        key = GetCharPressed();
+                    }
+                    if (IsKeyPressed(KEY_ENTER)) {
+                        submittedC1 = true;
+                        if (answerC1 == "hurry up") {
+                            coffinsolved1 = 1;
+                            resultC1 = 1;
+                        }
+                        else
+                        {
+                            lives--;
+                            if (lives == 0) {
+                                timeLeft = 120.0f;
+                                lives = 3;
+                                state = GAMEOVER;
+                            }
+                            resultC1 = 2;// wrong answer
+                        }
+                    }
+                }
+            }
+            if (IsKeyPressed(KEY_TAB) && (submittedC1 || coffinsolved1 == 1))
+            {
+                state = PLAYING;
+            }
+        }
         else if (state == COMPPASSWORD)
         {
             if (passSolved == 0 && !submittedCp)
             {
                 int key = GetCharPressed();
-                while (key > 0)
+                if (IsKeyPressed(KEY_TAB))
                 {
-                    answerCp += tolower((char)key);
-                    key = GetCharPressed();
+                    state = PLAYING;
                 }
-                if (IsKeyPressed(KEY_ENTER))
+                else
                 {
-                    submittedCp = true;
-                    if (answerCp == "2007")
+                    while (key > 0)
                     {
-                        passSolved = 1;
-                        resultCp = 1;//RIGHT ANSWER CONDITION
-                       
+                        answerCp += tolower((char)key);
+                        key = GetCharPressed();
                     }
-                    else
+                    if (IsKeyPressed(KEY_ENTER))
                     {
-                        lives--;
-                        if (lives == 0)
+                        submittedCp = true;
+                        if (answerCp == "2007")
                         {
-                            timeLeft = 120.0f;
-                            lives = 3;
-                            state = GAMEOVER;
+                            passSolved = 1;
+                            resultCp = 1;//RIGHT ANSWER CONDITION
+
                         }
-                        resultCp = 2;//WRONG ANSWER CONDITION
+                        else
+                        {
+                            lives--;
+                            if (lives == 0)
+                            {
+                                timeLeft = 120.0f;
+                                lives = 3;
+                                state = GAMEOVER;
+                            }
+                            resultCp = 2;//WRONG ANSWER CONDITION
+                        }
                     }
                 }
             }
-            if (IsKeyPressed(KEY_R) && (submittedCp || passSolved == 1))
+          if (IsKeyPressed(KEY_TAB) && (submittedCp || passSolved == 1))
             {
                state = PLAYING;
+            }
+        }
+        else if (state == HOLE)// comp riddle
+        {//WORKING
+            if (holeSolved == 0 && !submittedHole) {
+                int key = GetCharPressed();
+                if (IsKeyPressed(KEY_TAB))
+                {
+                    state = PLAYING;
+                }
+                else
+                {
+                    while (key > 0) {
+                        answerHole += tolower((char)key);
+                        key = GetCharPressed();
+                    }
+                    if (IsKeyPressed(KEY_ENTER)) {
+                        submittedHole = true;
+                        if (answerHole == "none" || answerHole == "same" || answerHole == "neither" || answerHole == "equal") {
+                            holeSolved = 1;
+                            resultHole = 1;
+                        }
+                        else
+                        {
+                            lives--;
+                            if (lives == 0) {
+                                timeLeft = 120.0f;
+                                lives = 3;
+                                state = GAMEOVER;
+                            }
+                            resultHole = 2;// wrong answer
+                        }
+                    }
+                }
+            }
+            if (IsKeyPressed(KEY_TAB) && (submittedHole || holeSolved == 1))
+            {
+                state = PLAYING;
             }
         }
         else if (state == PAUSED)// ZAINAB
@@ -286,6 +375,8 @@ int main()
                 timeLeft = 120.0f;
                 player.x = 700;
                 player.y = 500;
+				lives = 3;
+                bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0;
 
                 state = PLAYING;
             }
@@ -306,7 +397,7 @@ int main()
             DrawText("COMES IN AND KILLS YOU", (screenWidth - MeasureText("COMES IN AND KILLS YOU", 22)) / 2, 410, 22, LIGHTGRAY);
             DrawText("PRESS S TO START!", (screenWidth - MeasureText("PRESS S TO START!", 36)) / 2, 520, 36, YELLOW);
         }
-        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD)//MARYAM
+        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state==HOLE)//MARYAM
         {
             ClearBackground(DARKGRAY);
             // ROOM
@@ -325,19 +416,16 @@ int main()
 
 
             //SOFA
-            DrawTexture(sofaTexture, 235, 450, WHITE);
+            DrawTexture(sofaTexture, 280, 490, WHITE);
             //CRACKS
-            DrawTexture(cracksTexture, 485, 498, WHITE);
+            DrawTexture(cracksTexture, 485, 520, WHITE);
 
             //CLOCK
             DrawTexture(clockTexture, 450, 50, WHITE);
 
             //SHELF
             DrawTexture(shelfTexture, 380, 189, WHITE);
-            if ((player.x > bookrangex1 && player.x < bookrangex2) && (player.y < bookrangey))
-            {
-                DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
-            }
+            
 
             //TIME
             DrawText(TextFormat("Time: %d", (int)timeLeft), 20, 60, 30, BLACK);
@@ -346,7 +434,7 @@ int main()
 
 
             //HANDS
-            DrawTexture(handsTexture, 30, 520, WHITE);
+            DrawTexture(handsTexture, 25, 500, WHITE);
 
             //LIVE 
             DrawText(TextFormat("%d LIVES", lives), 20, 20, 30, BLACK);
@@ -364,23 +452,27 @@ int main()
                 { 0,0 }, 0.0f, WHITE);
 
             //COFFIN
-           /* DrawTexturePro(coffinTexture,
-                { 0, 0, (float)coffinTexture.width, (float)coffinTexture.height },
-                { 851, wallHeight - 210, (float)coffinTexture.width, (float)coffinTexture.height },
-                { 0,0 }, 0.0f, WHITE);*/
             DrawTexture(coffinTexture, 851, 190, WHITE);
+            
 
             //SKULLS
             DrawTexture(skullsTexture, 750, 320, WHITE);
-
+            //HOLE
+            DrawTexture(holeTexture, 840, 538, WHITE);
+           
+            //chain
+            DrawTexture(chainsTexture, 875, 599, WHITE);
 
             // Player 
             DrawTexture(playerTexture, player.x, player.y, WHITE);
             //COMPUTER
             DrawTexture(computerTexture, computer.x, computer.y, WHITE);
-            if ((player.x > comprangex1 + 20 && player.x < comprangex2 + 20) && (player.y < comprangey + 20)) {
+            // draw interaction 
+            if (state ==PLAYING &&(nearBook || nearComp || nearCoffin || nearHole ))
+            {
                 DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
             }
+
 
             if (state == PAUSED)//ZAINAB
             {
@@ -398,11 +490,12 @@ int main()
                 {
                     //IF OPEN AGAINAFTER SOLVED
                     DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
-                    DrawText("PRESS R TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS R TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
                 }
                 else
                 {
                     DrawText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", (screenWidth - MeasureText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", 30)) / 2, 220, 30, WHITE);
+                    DrawText("PRESS TAB TO GO BACK.", (screenWidth - MeasureText("PRESS TAB TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
                     DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
                     DrawText(word.c_str(), 310, 310, 30, BLACK);//TYPED TEXT
                     if (!submittedR)
@@ -414,68 +507,109 @@ int main()
                         if (resultR == 1)
                         {
                             DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
-                            DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
+                            
                         }
                         else if (resultR == 2)
                         {
                             DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
-                            DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
+                           
                         }
                     }
                 }
 
             }
-            //else if (state == COFFIN)
-            //{
-            //    DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
-            //    DrawText("COMPUTER RIDDLE", (screenWidth - MeasureText("COMPUTER RIDDLE", 60)) / 2, 120, 50, WHITE);
-            //    if (coffinsolved1 == 1 && resultC1 == 0)
-            //    {
-            //        //if open again after solving
-            //        DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
-            //        DrawText("PRESS R TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS R TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
+            else if (state == COFFIN)
+            {
+                DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
+                DrawText("COFFIN RIDDLE", (screenWidth - MeasureText("COFFIN RIDDLE", 60)) / 2, 120, 50, WHITE);
+                if (coffinsolved1 == 1 && resultC1 == 0)
+                {
+                    //if open again after solving
+                    DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
 
-            //    }
-            //    else
-            //    {
-            //        DrawText("SOLVE THE SEQUENCE!", (screenWidth - MeasureText("SOLVE THE SEQUENCE!", 30)) / 2, 220, 30, WHITE);
-            //        DrawText("IVSSZ VQ (HINT:+1 OR -1)", (screenWidth - MeasureText("IVSSZ VQ (HINT:+1 OR -1)", 30)) / 2, 260, 30, WHITE);
-            //        DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
-            //        DrawText(answerC1.c_str(), 310, 310, 30, BLACK);
-            //        if (!submittedC1)
-            //        {
-            //            DrawText("TYPE ANSWER AND PRESS ENTER!", (screenWidth - MeasureText("TYPE ANSWER AND PRESS ENTER!", 22)) / 2, 370, 22, WHITE);
-            //        }
-            //        else
-            //        {
-            //            if (resultC1 == 1)
-            //            {
-            //                DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
-            //                DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
-            //            }
-            //            else if (resultC1 == 2)
-            //            {
-            //                DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
-            //                DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
-            //            }
-            //        }
-            //    }
-            //}
+                }
+                else
+                {
+                    DrawText("SOLVE THE SEQUENCE!", (screenWidth - MeasureText("SOLVE THE SEQUENCE!", 30)) / 2, 220, 30, WHITE);
+                    DrawText("IVSSZ VQ (HINT:+1 OR -1)", (screenWidth - MeasureText("IVSSZ VQ (HINT:+1 OR -1)", 30)) / 2, 260, 30, WHITE);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
+                    DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
+                    DrawText(answerC1.c_str(), 310, 310, 30, BLACK);
+                    if (!submittedC1)
+                    {
+                        DrawText("TYPE ANSWER AND PRESS ENTER!", (screenWidth - MeasureText("TYPE ANSWER AND PRESS ENTER!", 22)) / 2, 370, 22, WHITE);
+                    }
+                    else
+                    {
+                        if (resultC1 == 1)
+                        {
+                            DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
+                            
+                            DrawText("Metal Rings!", (screenWidth - MeasureText("Metal Rings!", 22)) / 2, 480, 22, RED);
+                        }
+                        else if (resultC1 == 2)
+                        {
+                            DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
+                           
+                        }
+                    }
+                }
+            }
+            else if (state == HOLE)
+            {
+                DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
+                DrawText("HOLE RIDDLE", (screenWidth - MeasureText("HOLE RIDDLE", 60)) / 2, 120, 50, WHITE);
+                if (holeSolved == 1 && resultHole == 0)
+                {
+                    //if open again after solving
+                    DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
+
+                }
+                else
+                {
+                    DrawText("SOLVE THE FINAL RIDDLE!", (screenWidth - MeasureText("SOLVE THE FINAL RIDDLE!", 30)) / 2, 220, 30, WHITE);
+                    DrawText("WHATS HEAVIER??", (screenWidth - MeasureText("WHATS HEAVIER??", 30)) / 2, 260, 30, WHITE);
+                    DrawText("A KILOGRAM OF STEEL OR A KILOGRAM OF FEATHER", (screenWidth - MeasureText("A KILOGRAM OF STEEL OR A KILOGRAM OF FEATGHER", 30)) / 2, 300, 30, WHITE);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 580, 24, LIGHTGRAY);
+                    DrawRectangle(300, 400, 400, 50, WHITE);//INPUT BOX
+                    DrawText(answerHole.c_str(), 310, 410, 30, BLACK);
+                    if (!submittedHole)
+                    {
+                        DrawText("TYPE ANSWER AND PRESS ENTER!", (screenWidth - MeasureText("TYPE ANSWER AND PRESS ENTER!", 22)) / 2, 370, 22, WHITE);
+                    }
+                    else
+                    {
+                        if (resultHole == 1)
+                        {
+                            DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 460, 36, GREEN);
+
+                            DrawText("YOU'VE GOT THE VERVAIN STICK. KILL THE HAND AND GET THE KEY!", (screenWidth - MeasureText("YOU'VE GOT THE VERVAIN STICK. KILL THE HAND AND GET THE KEY!!", 22)) / 2, 520, 22, RED);
+                        }
+                        else if (resultHole == 2)
+                        {
+                            DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 460, 36, RED);
+                           
+                        }
+                    }
+                }
+            }
             else if (state == COMPPASSWORD)
             {
                 if (passSolved == 1 && resultCp == 0)
                 {
                     
                     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
-                    DrawText("UNLOCK COMPUTER", (screenWidth - MeasureText("UNLOCK COMPUTER", 60)) / 2, 120, 50, WHITE);
-                    //if open again after solving
+                    
                     DrawText("YOU HAVE ALREADY UNLOCKED IT.", (screenWidth - MeasureText("YOU HAVE ALREADY UNLOCKED IT.", 30)) / 2, 280, 30, WHITE);
-                    DrawText("PRESS R TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS R TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
 
                 }
                 else {
                     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
                     DrawText("ENTER PASSWORD", (screenWidth - MeasureText("ENTER PASSWORD", 60)) / 2, 120, 50, WHITE);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
                     DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
                     DrawText(answerCp.c_str(), 310, 310, 30, BLACK);
                     if (!submittedCp)
@@ -493,7 +627,7 @@ int main()
                         else if (resultCp == 2)
                         {
                             DrawText(TextFormat("INCORRECT PASSWORD!% d LIVES LEFT : (", lives), (screenWidth - MeasureText(TextFormat("INCORRECT PASSWORD!% d LIVES LEFT  : (", lives), 36)) / 2, 420, 36, RED);
-                            DrawText("PRESS R TO GO BACK.", (screenWidth - MeasureText("PRESS R TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
+                           
                         }
 
                     }
@@ -525,6 +659,8 @@ int main()
     UnloadTexture(coffinTexture);
     UnloadTexture(skullsTexture);
     UnloadTexture(handsTexture);
+    UnloadTexture(holeTexture);
+    UnloadTexture(chainsTexture);
     UnloadTexture(cracksTexture);
 
     CloseWindow();
