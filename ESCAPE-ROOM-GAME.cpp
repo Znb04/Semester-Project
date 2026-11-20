@@ -2,7 +2,8 @@
 #include<string>
 #include<cctype>
 using namespace std;
-typedef enum { START, PLAYING, PAUSED, GAMEOVER, BOOKRIDDLE,COFFIN, COMPPASSWORD , HOLE} GameState;
+typedef enum { START, PLAYING, PAUSED, RESTART, GAMEOVER, BOOKRIDDLE, COFFIN, COMPPASSWORD, HOLE, HAND } GameState;/////// ADDED A STATE ////////
+
 
 int main()
 {
@@ -13,7 +14,7 @@ int main()
     float timeLeft = 120.0f;
     bool gameStart = true;
     //
-    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200},coffinArea = { 780, 300, 220, 50 },holeArea = { 840, 560, 220, 160 };
+    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200 }, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, handArea = {25,500,100,100};
 
     InitWindow(screenWidth, screenHeight, "ESCAPE ROOM");
     SetTargetFPS(60);
@@ -35,6 +36,9 @@ int main()
     Texture2D cracksTexture = LoadTexture("cracks.png");
     Texture2D holeTexture = LoadTexture("HOLE.png");
     Texture2D chainsTexture = LoadTexture("chainsR.png");
+    Texture2D gameoverTexture = LoadTexture("game over.png");/////////////////
+    Texture2D menudisplayTexture = LoadTexture("excaperoomdisplay.png");////////////////////
+    Texture2D handscareTexture = LoadTexture("no escape msg jump.png");
     
 
     GameState state = START;
@@ -64,7 +68,7 @@ int main()
     bool submittedC1 = false;
     int resultC1 = 0;
     // we gotta make detection
-    bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false;
+    bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false,nearHand=false;
     // MAIN GAME LOOP
     while (!WindowShouldClose())
     {
@@ -94,6 +98,7 @@ int main()
             nearComp = CheckCollisionRecs(player, compArea);
             nearCoffin = CheckCollisionRecs(player, coffinArea);
             nearHole = CheckCollisionRecs(player, holeArea);
+            nearHand = CheckCollisionRecs(player, handArea);
 
             float speed = 350.0f;
             float ft = GetFrameTime();
@@ -175,6 +180,10 @@ int main()
                     resultHole = 0;
                     while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
 
+                }
+                else if (nearHand)
+                {
+                    state = HAND;
                 }
             }
             if (IsKeyPressed(KEY_P))
@@ -351,34 +360,53 @@ int main()
                 state = PLAYING;
             }
         }
+        else if (state == HAND)
+        {
+            if (IsKeyPressed(KEY_TAB))
+            {
+                state = PLAYING;
+                
+            }
+        }
         else if (state == PAUSED)// ZAINAB
         {
             if (IsKeyPressed(KEY_C))
             {
                 state = PLAYING;
             }
-            if (IsKeyPressed(KEY_S))
+            if (IsKeyPressed(KEY_R))
             {
-                player.x = 700;
+                /*player.x = 700;
                 player.y = 500;
-                state = PLAYING;
+                state = PLAYING;*/
+                state = RESTART;///////////////////////////////////////////
             }
             if (IsKeyPressed(KEY_G))
             {
                 state = GAMEOVER;
             }
         }
+        else if (state == RESTART)/////////// ADDED A RESTART STATE ///////////
+        {
+            lives = 3;
+            timeLeft = 120.0f;
+            player.x = 700;
+            player.y = 500;
+            bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0;
+
+            state = PLAYING;
+        }
         else if (state == GAMEOVER)//ZAINAB
         {
-            if (IsKeyPressed(KEY_S))
+            if (IsKeyPressed(KEY_M))
             {
+                lives = 3;
                 timeLeft = 120.0f;
                 player.x = 700;
                 player.y = 500;
-				lives = 3;
                 bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0;
 
-                state = PLAYING;
+                state = START;
             }
         }
 
@@ -388,16 +416,19 @@ int main()
         BeginDrawing();
         if (state == START)// ZAINAB
         {
-            ClearBackground(BLACK);
+            DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));///////////////////
+            DrawTexture(menudisplayTexture, 00, 00, WHITE);/////////////////////
+            /*ClearBackground(BLACK);
             DrawText("ESCAPE ROOM", (screenWidth - MeasureText("ESCAPE ROOM", 60)) / 2, 90, 60, WHITE);
             DrawText("USE ARROW KEYS FOR PLAYER MOVEMENT. ", (screenWidth - MeasureText("USE ARROW KEYS FOR PLAYER MOVEMENT. ", 28)) / 2, 210, 28, LIGHTGRAY);
             DrawText("PRESS E TO INTERACT WITH THE OBJECTS. ", (screenWidth - MeasureText("PRESS E TO INTERACT WITH THE OBJECTS. ", 24)) / 2, 255, 24, LIGHTGRAY);
             DrawText("DESCRIPTION: YOU HAVE 5 MINS AND 3 LIVES TO ESCAPE THE ROOM  ", (screenWidth - MeasureText("DESCRIPTION: YOU HAVE 5 MINS AND 3 LIVES TO ESCAPE THE ROOM  ", 22)) / 2, 340, 22, LIGHTGRAY);
             DrawText("BY FINDING CLUES AND SOLVING THE RIDDLES BEFORE THE REAPER", (screenWidth - MeasureText("BY FINDING CLUES AND SOLVING THE RIDDLES BEFORE THE REAPER", 22)) / 2, 375, 22, LIGHTGRAY);
             DrawText("COMES IN AND KILLS YOU", (screenWidth - MeasureText("COMES IN AND KILLS YOU", 22)) / 2, 410, 22, LIGHTGRAY);
-            DrawText("PRESS S TO START!", (screenWidth - MeasureText("PRESS S TO START!", 36)) / 2, 520, 36, YELLOW);
+            DrawText("PRESS S TO START!", (screenWidth - MeasureText("PRESS S TO START!", 36)) / 2, 520, 36, YELLOW);*/
+
         }
-        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state==HOLE)//MARYAM
+        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state==HOLE ||state==HAND)//MARYAM
         {
             ClearBackground(DARKGRAY);
             // ROOM
@@ -468,19 +499,25 @@ int main()
             //COMPUTER
             DrawTexture(computerTexture, computer.x, computer.y, WHITE);
             // draw interaction 
-            if (state ==PLAYING &&(nearBook || nearComp || nearCoffin || nearHole ))
+           /* if (state == PLAYING && (nearBook || nearComp || nearCoffin || nearHole))
             {
                 DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
-            }
+            }*/
 
+          
 
             if (state == PAUSED)//ZAINAB
             {
                 DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
                 DrawText("PAUSED", (screenWidth - MeasureText("PAUSED", 60)) / 2, 150, 60, WHITE);
                 DrawText("C : CONTINUE", (screenWidth - MeasureText("C : CONTINUE", 36)) / 2, 260, 36, WHITE);
-                DrawText("S : RESTART", (screenWidth - MeasureText("S : RESTART", 36)) / 2, 330, 36, WHITE);
-                DrawText("G : END GAME", (screenWidth - MeasureText("G : END GAME", 36)) / 2, 400, 36, WHITE);
+                DrawText("R : RESTART", (screenWidth - MeasureText("S : RESTART", 36)) / 2, 330, 36, WHITE);
+                DrawText("G : END GAME AND RETURN TO MAIN MENU", (screenWidth - MeasureText("G : END GAME AND RETURN TO MAIN MENU", 36)) / 2, 400, 36, WHITE);////////////////////////////////
+            }
+            else if (state == HAND)
+            {
+                DrawRectangle(0, 0, screenWidth, screenHeight, BLACK);
+                DrawTexture(handscareTexture, 03,01, WHITE);
             }
             else if (state == BOOKRIDDLE)// MARYAM
             {
@@ -636,9 +673,14 @@ int main()
         }
         else if (state == GAMEOVER)//ZAINAB
         {
-            ClearBackground(BLACK);
+            /*
+           ClearBackground(BLACK);
             DrawText("GAME OVER", (screenWidth - MeasureText("GAME OVER", 70)) / 2, 250, 70, RED);
-            DrawText("PRESS S TO RESTART!", (screenWidth - MeasureText("PRESS S TO RESTART", 30)) / 2, 380, 30, WHITE);
+            DrawText("PRESS M TO RETURN TO MAIN MENU!", (screenWidth - MeasureText("PRESS M TO RETURN TO MAIN MENU!", 30)) / 2, 380, 30, WHITE);////////CHNAGES THE TEXT///////////////////////////////////////
+            */
+            DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));///////////////////
+            DrawTexture(gameoverTexture, 00, 00, WHITE);/////////////////////
+
         }
         EndDrawing();
     }
@@ -662,6 +704,9 @@ int main()
     UnloadTexture(holeTexture);
     UnloadTexture(chainsTexture);
     UnloadTexture(cracksTexture);
+    UnloadTexture(gameoverTexture);////////////////
+    UnloadTexture(menudisplayTexture);//////////////////////
+    UnloadTexture(handscareTexture);
 
     CloseWindow();
     return 0;
