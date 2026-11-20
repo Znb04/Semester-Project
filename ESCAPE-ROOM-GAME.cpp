@@ -14,9 +14,10 @@ int main()
     float timeLeft = 120.0f;
     bool gameStart = true;
     //
-    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200 }, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, handArea = {25,500,100,100};
+    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200 }, sofaArea = {280,490,350,234}, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, handArea = { 25,500,100,100 };
 
     InitWindow(screenWidth, screenHeight, "ESCAPE ROOM");
+    InitAudioDevice();
     SetTargetFPS(60);
 
     Texture2D floorTexture = LoadTexture("FLOOR.png");
@@ -28,7 +29,7 @@ int main()
     Texture2D computerTexture = LoadTexture("comp.png");
     Texture2D playerTexture = LoadTexture("player150.reset.png");
     Texture2D livesTexture = LoadTexture("LIVES.png");
-    Texture2D sofaTexture = LoadTexture("couch.png");
+    Texture2D sofaTexture = LoadTexture("COUCH.png");
     Texture2D skeletonTexture = LoadTexture("TIMESKELETON.png");
     Texture2D coffinTexture = LoadTexture("COFFINS.png");
     Texture2D skullsTexture = LoadTexture("skull.png");
@@ -39,10 +40,24 @@ int main()
     Texture2D gameoverTexture = LoadTexture("game over.png");/////////////////
     Texture2D menudisplayTexture = LoadTexture("excaperoomdisplay.png");////////////////////
     Texture2D handscareTexture = LoadTexture("no escape msg jump.png");
+    //sound
+    Music mainmusic = LoadMusicStream("Eternal Terminal.mp3");
+    Music riddlemusic = LoadMusicStream("riddle2.mp3");
+    Music startmusic = LoadMusicStream("menumusic.mp3");
+    mainmusic.looping = true;
+    riddlemusic.looping = true;
+    startmusic.looping = true;
+    SetMusicVolume(mainmusic, 0.2f);
+    SetMusicVolume(riddlemusic, 0.5f);
+    SetMusicVolume(startmusic, 0.5f);
+    PlayMusicStream(mainmusic);
     
+    Music* currentMusic = &mainmusic;   // points to the track that is playing
+    PlayMusicStream(*currentMusic);
 
     GameState state = START;
     Rectangle computer = { 0, 232, (float)computerTexture.width, (float)computerTexture.height };//ZAINAB
+    Rectangle sofa = {280,490,(float)sofaTexture.width,(float)sofaTexture.height};
     Rectangle collisionArea = { 0,0,0,0 };
     // PLAYER SETTINGS
     Rectangle player = { 700, 500,(float)playerTexture.width, (float)playerTexture.height };//MARYAM
@@ -70,11 +85,14 @@ int main()
     // we gotta make detection
     bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false,nearHand=false;
     // MAIN GAME LOOP
+   
     while (!WindowShouldClose())
     {
+        UpdateMusicStream(*currentMusic);
 
         if (state == PLAYING || state == BOOKRIDDLE || state == COFFIN || state==COMPPASSWORD || state==HOLE)
         {
+            
             timeLeft = timeLeft - GetFrameTime();
         }
         gameStart = true;
@@ -93,6 +111,8 @@ int main()
         }
         else if (state == PLAYING) //ZAINAB
         {
+           
+           
             //START STATE
             nearBook = CheckCollisionRecs(player, bookArea);
             nearComp = CheckCollisionRecs(player, compArea);
@@ -136,6 +156,24 @@ int main()
                 }
                 if (collisionArea.height > collisionArea.width) {//horizontal collision
                     if (player.x < computer.x)//collison from left
+                        player.x = player.x - collisionArea.width;
+                    else//collison from right
+                        player.x = player.x + collisionArea.width;
+                }
+            }
+            //COLLISION SOFA
+            if (CheckCollisionRecs(player, sofa))
+            {
+                collisionArea = GetCollisionRec(player, sofa);
+
+                if (collisionArea.width > collisionArea.height) {//vertical collision
+                    if (player.y < sofa.y)//collison from bottom
+                        player.y = player.y - collisionArea.height;
+                    else//collison from toph
+                        player.y = player.y + collisionArea.height;
+                }
+                if (collisionArea.height > collisionArea.width) {//horizontal collision
+                    if (player.x < sofa.x)//collison from left
                         player.x = player.x - collisionArea.width;
                     else//collison from right
                         player.x = player.x + collisionArea.width;
@@ -317,7 +355,7 @@ int main()
                     }
                 }
             }
-          if (IsKeyPressed(KEY_TAB) && (submittedCp || passSolved == 1))
+            if (IsKeyPressed(KEY_TAB) && (submittedCp || passSolved == 1))
             {
                state = PLAYING;
             }
@@ -410,7 +448,30 @@ int main()
             }
         }
 
+        // choose which music the current state wants
+        Music* wantedMusic = currentMusic;   // default: keep playing (PAUSED, RESTART)
 
+        if (state==PAUSED || state == PLAYING)
+        {
+            wantedMusic = &mainmusic;
+        }
+        else if (state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state == HOLE)
+        {
+            wantedMusic = &riddlemusic;      // same track for every riddle
+        }
+        else if (state == START)
+        {
+            wantedMusic = &startmusic;
+        }
+       
+
+        // only switch if it is a different track
+        if (wantedMusic != currentMusic)
+        {
+            StopMusicStream(*currentMusic);
+            currentMusic = wantedMusic;
+            PlayMusicStream(*currentMusic);
+        }
         // DRAW EVERYTHING
 
         BeginDrawing();
@@ -465,7 +526,7 @@ int main()
 
 
             //HANDS
-            DrawTexture(handsTexture, 25, 500, WHITE);
+          //  DrawTexture(handsTexture, 25, 500, WHITE);
 
             //LIVE 
             DrawText(TextFormat("%d LIVES", lives), 20, 20, 30, BLACK);
@@ -707,7 +768,10 @@ int main()
     UnloadTexture(gameoverTexture);////////////////
     UnloadTexture(menudisplayTexture);//////////////////////
     UnloadTexture(handscareTexture);
-
+    //MUSIC
+    UnloadMusicStream(mainmusic);
+    UnloadMusicStream(riddlemusic);
     CloseWindow();
+    CloseAudioDevice();
     return 0;
 }
