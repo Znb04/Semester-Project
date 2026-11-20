@@ -2,7 +2,7 @@
 #include<string>
 #include<cctype>
 using namespace std;
-typedef enum { START, PLAYING, PAUSED, RESTART, GAMEOVER, BOOKRIDDLE, COFFIN, COMPPASSWORD, HOLE, HAND } GameState;/////// ADDED A STATE ////////
+typedef enum { START, PLAYING, PAUSED, RESTART, GAMEOVER, BOOKRIDDLE, COFFIN, COMPPASSWORD, HOLE, CHIT } GameState;/////// ADDED A STATE ////////
 
 
 int main()
@@ -14,7 +14,7 @@ int main()
     float timeLeft = 120.0f;
     bool gameStart = true;
     //
-    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200 }, sofaArea = {280,490,350,234}, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, handArea = { 25,500,100,100 };
+    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200 }, sofaArea = {280,516,350,234}, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, chitArea = { 25,500,100,100 };
 
     InitWindow(screenWidth, screenHeight, "ESCAPE ROOM");
     InitAudioDevice();
@@ -33,13 +33,14 @@ int main()
     Texture2D skeletonTexture = LoadTexture("TIMESKELETON.png");
     Texture2D coffinTexture = LoadTexture("COFFINS.png");
     Texture2D skullsTexture = LoadTexture("skull.png");
-    Texture2D handsTexture = LoadTexture("HANDS.png");
+    Texture2D chitTexture = LoadTexture("chitss.png");
     Texture2D cracksTexture = LoadTexture("cracks.png");
     Texture2D holeTexture = LoadTexture("HOLE.png");
     Texture2D chainsTexture = LoadTexture("chainsR.png");
     Texture2D gameoverTexture = LoadTexture("game over.png");/////////////////
     Texture2D menudisplayTexture = LoadTexture("excaperoomdisplay.png");////////////////////
     Texture2D handscareTexture = LoadTexture("no escape msg jump.png");
+    Texture2D displaychitTexture = LoadTexture("DISPLAYCHIT.png");
     //sound
     Music mainmusic = LoadMusicStream("Eternal Terminal.mp3");
     Music riddlemusic = LoadMusicStream("riddle2.mp3");
@@ -57,7 +58,7 @@ int main()
 
     GameState state = START;
     Rectangle computer = { 0, 232, (float)computerTexture.width, (float)computerTexture.height };//ZAINAB
-    Rectangle sofa = {280,490,(float)sofaTexture.width,(float)sofaTexture.height};
+    Rectangle sofa = {280,516,(float)sofaTexture.width,(float)sofaTexture.height};
     Rectangle collisionArea = { 0,0,0,0 };
     // PLAYER SETTINGS
     Rectangle player = { 700, 500,(float)playerTexture.width, (float)playerTexture.height };//MARYAM
@@ -83,7 +84,7 @@ int main()
     bool submittedC1 = false;
     int resultC1 = 0;
     // we gotta make detection
-    bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false,nearHand=false;
+    bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false,nearChit=false;
     // MAIN GAME LOOP
    
     while (!WindowShouldClose())
@@ -118,7 +119,7 @@ int main()
             nearComp = CheckCollisionRecs(player, compArea);
             nearCoffin = CheckCollisionRecs(player, coffinArea);
             nearHole = CheckCollisionRecs(player, holeArea);
-            nearHand = CheckCollisionRecs(player, handArea);
+            nearChit = CheckCollisionRecs(player, chitArea);
 
             float speed = 350.0f;
             float ft = GetFrameTime();
@@ -219,9 +220,9 @@ int main()
                     while (GetCharPressed() > 0) {}   // throws away the "e" you just pressed
 
                 }
-                else if (nearHand)
+                else if (nearChit)
                 {
-                    state = HAND;
+                    state = CHIT;
                 }
             }
             if (IsKeyPressed(KEY_P))
@@ -335,7 +336,7 @@ int main()
                     if (IsKeyPressed(KEY_ENTER))
                     {
                         submittedCp = true;
-                        if (answerCp == "2007")
+                        if (answerCp == "9251")
                         {
                             passSolved = 1;
                             resultCp = 1;//RIGHT ANSWER CONDITION
@@ -398,7 +399,7 @@ int main()
                 state = PLAYING;
             }
         }
-        else if (state == HAND)
+        else if (state == CHIT)
         {
             if (IsKeyPressed(KEY_TAB))
             {
@@ -489,7 +490,7 @@ int main()
             DrawText("PRESS S TO START!", (screenWidth - MeasureText("PRESS S TO START!", 36)) / 2, 520, 36, YELLOW);*/
 
         }
-        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state==HOLE ||state==HAND)//MARYAM
+        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state==HOLE ||state==CHIT)//MARYAM
         {
             ClearBackground(DARKGRAY);
             // ROOM
@@ -508,7 +509,8 @@ int main()
 
 
             //SOFA
-            DrawTexture(sofaTexture, 280, 490, WHITE);
+            DrawTexture(sofaTexture, 280, 516, WHITE);
+
             //CRACKS
             DrawTexture(cracksTexture, 485, 520, WHITE);
 
@@ -521,15 +523,16 @@ int main()
 
             //TIME
             DrawText(TextFormat("Time: %d", (int)timeLeft), 20, 60, 30, BLACK);
+
             //TIME SKELETON 
             DrawTexture(skeletonTexture, 150, 55, WHITE);
 
-
-            //HANDS
-          //  DrawTexture(handsTexture, 25, 500, WHITE);
+            //CHIT
+            DrawTexture(chitTexture, 25, 600, WHITE);
 
             //LIVE 
             DrawText(TextFormat("%d LIVES", lives), 20, 20, 30, BLACK);
+
             //HEARTS
             DrawTexture(livesTexture, 150, 15, WHITE);
 
@@ -546,9 +549,9 @@ int main()
             //COFFIN
             DrawTexture(coffinTexture, 851, 190, WHITE);
             
-
             //SKULLS
             DrawTexture(skullsTexture, 750, 320, WHITE);
+
             //HOLE
             DrawTexture(holeTexture, 840, 538, WHITE);
            
@@ -557,8 +560,10 @@ int main()
 
             // Player 
             DrawTexture(playerTexture, player.x, player.y, WHITE);
+
             //COMPUTER
             DrawTexture(computerTexture, computer.x, computer.y, WHITE);
+
             // draw interaction 
            /* if (state == PLAYING && (nearBook || nearComp || nearCoffin || nearHole))
             {
@@ -575,10 +580,10 @@ int main()
                 DrawText("R : RESTART", (screenWidth - MeasureText("S : RESTART", 36)) / 2, 330, 36, WHITE);
                 DrawText("G : END GAME AND RETURN TO MAIN MENU", (screenWidth - MeasureText("G : END GAME AND RETURN TO MAIN MENU", 36)) / 2, 400, 36, WHITE);////////////////////////////////
             }
-            else if (state == HAND)
+            else if (state == CHIT)
             {
-                DrawRectangle(0, 0, screenWidth, screenHeight, BLACK);
-                DrawTexture(handscareTexture, 03,01, WHITE);
+                DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
+                DrawTexture(displaychitTexture, 04, 04, WHITE);
             }
             else if (state == BOOKRIDDLE)// MARYAM
             {
@@ -761,13 +766,13 @@ int main()
     UnloadTexture(skeletonTexture);
     UnloadTexture(coffinTexture);
     UnloadTexture(skullsTexture);
-    UnloadTexture(handsTexture);
     UnloadTexture(holeTexture);
     UnloadTexture(chainsTexture);
     UnloadTexture(cracksTexture);
     UnloadTexture(gameoverTexture);////////////////
     UnloadTexture(menudisplayTexture);//////////////////////
-    UnloadTexture(handscareTexture);
+    UnloadTexture(chitTexture);
+    UnloadTexture(displaychitTexture);
     //MUSIC
     UnloadMusicStream(mainmusic);
     UnloadMusicStream(riddlemusic);
