@@ -2,7 +2,14 @@
 #include<string>
 #include<cctype>
 using namespace std;
-typedef enum { START, PLAYING, PAUSED, RESTART, GAMEOVER, BOOKRIDDLE, COFFIN, COMPPASSWORD, HOLE, CHIT,SOFA,WINDOW,WIN} GameState;/////// ADDED A STATE ////////
+typedef enum { START, PLAYING, PAUSED, RESTART, GAMEOVER, BOOKRIDDLE, COFFIN, COMPPASSWORD, HOLE, CHIT, SOFA, WINDOW, WIN } GameState;/////// ADDED A STATE ////////
+
+//BACKSPACE FUNCTION
+auto backspace = [](string& s)
+    {
+        if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && !s.empty())
+            s.pop_back();
+    };
 
 
 int main()
@@ -15,7 +22,7 @@ int main()
     bool gameStart = true;
     int points = 0;
     //
-    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,200 }, sofaArea = { 280,510,400,234 }, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, chitArea = { 25,500,100,100 }, windowArea = { 600,150,200,200 }, doorArea = {230,150,270,300};
+    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,150 }, sofaArea = { 500,510,150,234 }, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, chitArea = { 25,50,100,100 }, windowArea = { 600,150,200,200 }, doorArea = { 230,150,270,300 },sofaArea2={ 280,510,200,234 };
 
     InitWindow(screenWidth, screenHeight, "ESCAPE ROOM");
     InitAudioDevice();
@@ -43,28 +50,35 @@ int main()
     Texture2D handscareTexture = LoadTexture("no escape msg jump.png");
     Texture2D displaychitTexture = LoadTexture("DISPLAYCHIT.png");
     Texture2D winTexture = LoadTexture("WIN.png");
+    Texture2D jumpscareTexture = LoadTexture("jumpscarewindow.png");
     //sound
     Music mainmusic = LoadMusicStream("Eternal Terminal.mp3");
     Music riddlemusic = LoadMusicStream("riddle2.mp3");
     Music startmusic = LoadMusicStream("menumusic.mp3");
+    Music gameovermusic = LoadMusicStream("gameovermusic.mp3");
+    Music winmusic = LoadMusicStream("winmusic.mp3");
     mainmusic.looping = true;
     riddlemusic.looping = true;
     startmusic.looping = true;
+    gameovermusic.looping = true;
+    winmusic.looping = true;
     SetMusicVolume(mainmusic, 0.2f);
     SetMusicVolume(riddlemusic, 0.5f);
     SetMusicVolume(startmusic, 0.5f);
+    SetMusicVolume(gameovermusic, 0.5f);
+    SetMusicVolume(winmusic, 0.5f);
     PlayMusicStream(mainmusic);
-    
+
     Music* currentMusic = &mainmusic;   // points to the track that is playing
     PlayMusicStream(*currentMusic);
 
     GameState state = START;
     Rectangle computer = { 0, 232, (float)computerTexture.width, (float)computerTexture.height };//ZAINAB
-    Rectangle sofa = {280,516,(float)sofaTexture.width,(float)sofaTexture.height};
+    Rectangle sofa = { 280,516,(float)sofaTexture.width,(float)sofaTexture.height };
     Rectangle collisionArea = { 0,0,0,0 };
     // PLAYER SETTINGS
     Rectangle player = { 700, 500,(float)playerTexture.width, (float)playerTexture.height };//MARYAM
-    //MARYAM
+    //BOOK
     int lives = 3;
     int bookSolved = 0;      // 0 = not solved, 1 = solved
     string word = ""; // what the player types
@@ -77,9 +91,9 @@ int main()
     int resultSofa = 0;
     //COMP PASSWORD
     int passSolved = 0;
-     int  resultCp=0;//RESULT CP DEALS WITH BEGIN DRAWING AND PASS SOLVE DEALS WITH BAGIN DRAWING
-    string answerCp="";
-    bool submittedCp=false;
+    int  resultCp = 0;//RESULT CP DEALS WITH BEGIN DRAWING AND PASS SOLVE DEALS WITH BAGIN DRAWING
+    string answerCp = "";
+    bool submittedCp = false;
     //STRICK
     int holeSolved = 0;
     string answerHole = "";
@@ -89,18 +103,23 @@ int main()
     int coffinsolved1 = 0;// RIDDLE IN COMP
     string answerC1 = "";
     bool submittedC1 = false;
-    int resultC1 = 0, resultChit=0;
+    int resultC1 = 0, resultChit = 0;
+    //WINDOW
+    int windowSolved = 0;      // 0 = not solved, 1 = solved
+    string answerW = ""; // what the player types
+    bool submittedWindow = false;  // has the player pressed ENTER yet?
+    int resultW = 0;
     // we gotta make detection
-    bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false, nearChit = false, nearSofa = false,nearWindow=false,nearDoor=false;
+    bool nearBook = false, nearComp = false, nearCoffin = false, nearHole = false, nearChit = false, nearSofa = false, nearWindow = false, nearDoor = false;
     // MAIN GAME LOOP
-   
+
     while (!WindowShouldClose())
     {
         UpdateMusicStream(*currentMusic);
 
-        if (state == PLAYING || state == BOOKRIDDLE || state == COFFIN || state==COMPPASSWORD || state==HOLE)
+        if (state == PLAYING || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state == HOLE)
         {
-            
+
             timeLeft = timeLeft - GetFrameTime();
         }
         gameStart = true;
@@ -114,20 +133,27 @@ int main()
         {
             if (IsKeyPressed(KEY_S))
             {
+                lives = 3;
+                timeLeft = 120.0f;
+                player.x = 700;
+                player.y = 500;
+                points = 0;
+                bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, sofaSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", answerSofa = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, submittedSofa = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0, resultSofa = 0, submittedWindow = false, resultW = 0, answerW = "", windowSolved = 0;
+
                 state = PLAYING;
             }
         }
         else if (state == PLAYING) //ZAINAB
         {
-           
-           
+
+
             //START STATE
             nearBook = CheckCollisionRecs(player, bookArea);
             nearComp = CheckCollisionRecs(player, compArea);
             nearCoffin = CheckCollisionRecs(player, coffinArea);
             nearHole = CheckCollisionRecs(player, holeArea);
             nearChit = CheckCollisionRecs(player, chitArea);
-            nearSofa=CheckCollisionRecs(player,sofaArea);
+            nearSofa = CheckCollisionRecs(player, sofaArea);
             nearWindow = CheckCollisionRecs(player, windowArea);
             nearDoor = CheckCollisionRecs(player, doorArea);
 
@@ -246,10 +272,14 @@ int main()
                 else if (nearWindow)
                 {
                     state = WINDOW;
+                    answerW = "";
+                    submittedWindow = false;
+                    resultW = 0;
+                    while (GetCharPressed() > 0) {}
                 }
-              
+
             }
-            else if (nearDoor && points == 100 && IsKeyPressed(KEY_U))
+            else if (nearDoor && points == 120 && IsKeyPressed(KEY_U))
             {
                 state = WIN;
             }
@@ -266,7 +296,7 @@ int main()
                 int key = GetCharPressed();
                 if (IsKeyPressed(KEY_TAB))
                 {
-                    state=PLAYING;
+                    state = PLAYING;
                 }
                 else
                 {
@@ -274,14 +304,16 @@ int main()
                     {
                         if (key >= 32 && key <= 125)   // printable characters, including spaces
                             word += tolower((char)key);
-                            key = GetCharPressed();
+                        key = GetCharPressed();
                     }
+
+                    backspace(word);
 
                     // 2) Enter: a separate check, outside the typing part
                     if (IsKeyPressed(KEY_ENTER))
                     {
                         submittedR = true;
-                        if (word == "keyboard")
+                        if (word == "silence")
                         {
                             bookSolved = 1;
                             points += 20;
@@ -318,10 +350,14 @@ int main()
                 }
                 else
                 {
-                    while (key > 0) {
+                    while (key > 0)
+                    {
                         answerC1 += tolower((char)key);
                         key = GetCharPressed();
                     }
+
+                    backspace(answerC1);
+
                     if (IsKeyPressed(KEY_ENTER)) {
                         submittedC1 = true;
                         if (answerC1 == "hurry up") {
@@ -363,6 +399,9 @@ int main()
                         answerCp += tolower((char)key);
                         key = GetCharPressed();
                     }
+
+                    backspace(answerCp);
+
                     if (IsKeyPressed(KEY_ENTER))
                     {
                         submittedCp = true;
@@ -389,7 +428,7 @@ int main()
             }
             if (IsKeyPressed(KEY_TAB) && (submittedCp || passSolved == 1))
             {
-               state = PLAYING;
+                state = PLAYING;
             }
         }
         else if (state == HOLE)// comp riddle
@@ -406,6 +445,9 @@ int main()
                         answerHole += tolower((char)key);
                         key = GetCharPressed();
                     }
+
+                    backspace(answerHole);
+
                     if (IsKeyPressed(KEY_ENTER)) {
                         submittedHole = true;
                         if (answerHole == "coffin") {
@@ -436,7 +478,7 @@ int main()
             resultChit = 1;
             if (IsKeyPressed(KEY_TAB))
             {
-                state = PLAYING;    
+                state = PLAYING;
             }
         }
         else if (state == SOFA)
@@ -456,6 +498,8 @@ int main()
                             answerSofa += tolower((char)key);
                         key = GetCharPressed();
                     }
+
+                    backspace(answerSofa);
 
                     // 2) Enter: a separate check, outside the typing part
                     if (IsKeyPressed(KEY_ENTER))
@@ -488,19 +532,61 @@ int main()
         }
         else if (state == WINDOW)
         {
-            if (IsKeyPressed(KEY_TAB))
+            if (windowSolved == 0 && !submittedWindow)
+            {
+                int key = GetCharPressed();
+                if (IsKeyPressed(KEY_TAB))
+                {
+                    state = PLAYING;
+                }
+                else
+                {
+                    while (key > 0)
+                    {
+                        if (key >= 32 && key <= 125)
+                            answerW += tolower((char)key);
+                        key = GetCharPressed();
+                    }
+
+                    backspace(answerW);
+
+                    if (IsKeyPressed(KEY_ENTER))
+                    {
+                        submittedWindow = true;
+                        if (answerW == "footsteps")
+                        {
+                            windowSolved = 1;
+                            points += 20;
+                            resultW = 1;
+                        }
+                        else
+                        {
+                            lives--;
+                            if (lives == 0)
+                            {
+                                timeLeft = 120.0f;
+                                lives = 3;
+                                state = GAMEOVER;
+                            }
+                            resultW = 2;
+                        }
+                    }
+                }
+
+            }
+
+            if (IsKeyPressed(KEY_TAB) && (submittedWindow || windowSolved == 1))
             {
                 state = PLAYING;
-
             }
         }
         else if (state == WIN)
         {
             if (IsKeyPressed(KEY_R))
             {
-                state = RESTART;///////////////////////////////////////////
+                state = START;///////////////////////////////////////////
             }
-        }
+            }
         else if (state == PAUSED)// ZAINAB
         {
             if (IsKeyPressed(KEY_C))
@@ -526,7 +612,7 @@ int main()
             player.x = 700;
             player.y = 500;
             points = 0;
-            bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, sofaSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", answerSofa = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, submittedSofa = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0,resultSofa=0;
+            bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, sofaSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", answerSofa = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, submittedSofa = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0, resultSofa = 0, submittedWindow = false, resultW = 0, answerW = "", windowSolved = 0;
 
             state = PLAYING;
         }
@@ -538,21 +624,22 @@ int main()
                 timeLeft = 120.0f;
                 player.x = 700;
                 player.y = 500;
-                bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, sofaSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", answerSofa = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, submittedSofa = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0, resultSofa = 0;    
+                bookSolved = 0, passSolved = 0, coffinsolved1 = 0, holeSolved = 0, sofaSolved = 0, word = "", answerC1 = "", answerCp = "", answerHole = "", answerSofa = "", submittedR = false, submittedC1 = false, submittedCp = false, submittedHole = false, submittedSofa = false, resultR = 0, resultC1 = 0, resultCp = 0, resultHole = 0, resultSofa = 0, submittedWindow = false, resultW = 0, answerW = "", windowSolved=0;
 
                 points = 0;
                 state = START;
             }
         }
+        
 
         // choose which music the current state wants
         Music* wantedMusic = currentMusic;   // default: keep playing (PAUSED, RESTART)
 
-        if (state==PAUSED || state == PLAYING)
+        if (state == PAUSED || state == PLAYING)
         {
             wantedMusic = &mainmusic;
         }
-        else if (state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state == HOLE || state==CHIT || state==SOFA)
+        else if (state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state == HOLE || state == CHIT || state == SOFA || state==WINDOW)
         {
             wantedMusic = &riddlemusic;      // same track for every riddle
         }
@@ -560,7 +647,15 @@ int main()
         {
             wantedMusic = &startmusic;
         }
-       
+        else if (state == WIN)
+        {
+            wantedMusic = &winmusic;
+        }
+        else if (state == GAMEOVER)
+        {
+            wantedMusic = &gameovermusic;
+        }
+
 
         // only switch if it is a different track
         if (wantedMusic != currentMusic)
@@ -586,7 +681,7 @@ int main()
             DrawText("PRESS S TO START!", (screenWidth - MeasureText("PRESS S TO START!", 36)) / 2, 520, 36, YELLOW);*/
 
         }
-        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state==HOLE ||state==CHIT || state==SOFA || state==WINDOW)//MARYAM
+        else if (state == PLAYING || state == PAUSED || state == BOOKRIDDLE || state == COFFIN || state == COMPPASSWORD || state == HOLE || state == CHIT || state == SOFA || state == WINDOW)//MARYAM
         {
             ClearBackground(DARKGRAY);
             // ROOM
@@ -615,7 +710,7 @@ int main()
 
             //SHELF
             DrawTexture(shelfTexture, 380, 189, WHITE);
-            
+
 
             //TIME
             DrawText(TextFormat("Time: %d", (int)timeLeft), 20, 60, 30, BLACK);
@@ -633,7 +728,7 @@ int main()
             DrawTexture(livesTexture, 150, 15, WHITE);
 
             //POINTS
-            DrawText(TextFormat("Points : %d",points ),20,100,30,BLACK);
+            DrawText(TextFormat("Points : %d", points), 20, 100, 30, BLACK);
 
             //WINDOW
             DrawTexture(windowTexture, 600, 150, WHITE);
@@ -647,13 +742,13 @@ int main()
 
             //COFFIN
             DrawTexture(coffinTexture, 851, 190, WHITE);
-            
+
             //SKULLS
             DrawTexture(skullsTexture, 750, 320, WHITE);
 
             //HOLE
             DrawTexture(holeTexture, 840, 538, WHITE);
-           
+
             //chain
             DrawTexture(chainsTexture, 875, 599, WHITE);
 
@@ -669,8 +764,8 @@ int main()
                 DrawText("press e to interact", (screenWidth - MeasureText("press e to interact", 30)) / 2, 600, 30, WHITE);
             }*/
 
-          
-            if (points == 100)
+
+            if (points == 120)
             {
                 DrawText("YOU GOT THE KEY, GO TO DOOR PRESS U TO UNLOCK", (screenWidth - MeasureText("YOU GOT THE KEY, GO TO DOOR PRESS U TO UNLOCK", 30)) / 2, 560, 30, WHITE);
             }
@@ -699,7 +794,7 @@ int main()
                 }
                 else
                 {
-                    DrawText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", (screenWidth - MeasureText("WHAT HAS A KEY BUT DOESN'T UNLOCK ANYTHING?", 30)) / 2, 220, 30, WHITE);
+                    DrawText("WHAT DISAPPEARS AS SOON AS YOU SAY ITS NAME?", (screenWidth - MeasureText("WHAT DISAPPEARS AS SOON AS YOU SAY ITS NAME ?", 30)) / 2, 220, 30, WHITE);
                     DrawText("PRESS TAB TO GO BACK.", (screenWidth - MeasureText("PRESS TAB TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
                     DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
                     DrawText(word.c_str(), 310, 310, 30, BLACK);//TYPED TEXT
@@ -712,12 +807,12 @@ int main()
                         if (resultR == 1)
                         {
                             DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
-                            
+
                         }
                         else if (resultR == 2)
                         {
                             DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
-                           
+
                         }
                     }
                 }
@@ -750,13 +845,13 @@ int main()
                         if (resultC1 == 1)
                         {
                             DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
-                            
+
                             DrawText("Metal Rings!", (screenWidth - MeasureText("Metal Rings!", 22)) / 2, 480, 22, RED);
                         }
                         else if (resultC1 == 2)
                         {
                             DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
-                           
+
                         }
                     }
                 }
@@ -790,12 +885,12 @@ int main()
                         {
                             DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 460, 36, GREEN);
 
-                          //  DrawText("Y!", (screenWidth - MeasureText("YOU'VE GOT THE VERVAIN STICK. KILL THE HAND AND GET THE KEY!!", 22)) / 2, 520, 22, RED);
+                            //  DrawText("Y!", (screenWidth - MeasureText("YOU'VE GOT THE VERVAIN STICK. KILL THE HAND AND GET THE KEY!!", 22)) / 2, 520, 22, RED);
                         }
                         else if (resultHole == 2)
                         {
                             DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 460, 36, RED);
-                           
+
                         }
                     }
                 }
@@ -804,9 +899,9 @@ int main()
             {
                 if (passSolved == 1 && resultCp == 0)
                 {
-                    
+
                     DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
-                    
+
                     DrawText("YOU HAVE ALREADY UNLOCKED IT.", (screenWidth - MeasureText("YOU HAVE ALREADY UNLOCKED IT.", 30)) / 2, 280, 30, WHITE);
                     DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
 
@@ -832,7 +927,7 @@ int main()
                         else if (resultCp == 2)
                         {
                             DrawText(TextFormat("INCORRECT PASSWORD!% d LIVES LEFT : (", lives), (screenWidth - MeasureText(TextFormat("INCORRECT PASSWORD!% d LIVES LEFT  : (", lives), 36)) / 2, 420, 36, RED);
-                           
+
                         }
 
                     }
@@ -879,6 +974,39 @@ int main()
             else if (state == WINDOW)
             {
                 DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
+                DrawText("WINDOW RIDDLE RIDDLE", (screenWidth - MeasureText("WINDOW RIDDLE", 60)) / 2, 120, 50, WHITE);
+                if (windowSolved == 1 && resultW == 0)
+                {
+                    //IF OPEN AGAINAFTER SOLVED
+                    DrawText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", (screenWidth - MeasureText("YOU HAVE ALREADY SOLVED THIS RIDDLE.", 30)) / 2, 280, 30, WHITE);
+                    DrawText("PRESS TAB TO RETURN TO THE GAME.", (screenWidth - MeasureText("PRESS TAB TO RETURN TO THE GAME.", 24)) / 2, 520, 24, LIGHTGRAY);
+                }
+                else
+                {
+                    DrawText("THE MORE YOU TAKE, THE MORE YOU LEAVE BEHIND.WHATS IT?", (screenWidth - MeasureText("THE MORE YOU TAKE, THE MORE YOU LEAVE BEHIND.WHATS IT?", 23)) / 2, 220, 23, WHITE);
+                    DrawText("PRESS TAB TO GO BACK.", (screenWidth - MeasureText("PRESS TAB TO GO BACK.", 24)) / 2, 520, 24, LIGHTGRAY);
+                    DrawRectangle(300, 300, 400, 50, WHITE);//INPUT BOX
+                    DrawText(answerW.c_str(), 310, 310, 30, BLACK);//TYPED TEXT
+                    if (!submittedWindow)
+                    {
+                        DrawText("TYPE YOUR ANSWER AND PRESS ENTER!", (screenWidth - MeasureText("TYPE YOUR ANSWER AND PRESS ENTER!", 22)) / 2, 370, 22, LIGHTGRAY);
+                    }
+                    else
+                    {
+                        if (resultW == 1)
+                        {
+                           // DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
+                            DrawTexture(jumpscareTexture, 00, 00, WHITE);
+
+
+                        }
+                        else if (resultW == 2)
+                        {
+                            DrawText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), (screenWidth - MeasureText(TextFormat("WRONG ANSWER! %d LIVES LEFT:(", lives), 36)) / 2, 420, 36, RED);
+
+                        }
+                    }
+                }
             }
         }
         else if (state == GAMEOVER)//ZAINAB
@@ -892,7 +1020,7 @@ int main()
             DrawTexture(gameoverTexture, 00, 00, WHITE);/////////////////////
 
         }
-        else if (state ==WIN)
+        else if (state == WIN)
         {
             DrawRectangle(0, 0, screenWidth, screenHeight, Fade(BLACK, 0.7f));
             DrawTexture(winTexture, 00, 00, WHITE);
@@ -923,10 +1051,13 @@ int main()
     UnloadTexture(chitTexture);
     UnloadTexture(displaychitTexture);
     UnloadTexture(winTexture);
+    UnloadTexture(jumpscareTexture);
 
     //MUSIC
     UnloadMusicStream(mainmusic);
     UnloadMusicStream(riddlemusic);
+    UnloadMusicStream(gameovermusic);
+    UnloadMusicStream(winmusic);
     CloseWindow();
     CloseAudioDevice();
     return 0;
