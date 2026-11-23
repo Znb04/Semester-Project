@@ -22,7 +22,7 @@ int main()
     bool gameStart = true;
     int points = 0;
     //
-    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,150 }, sofaArea = { 500,510,150,234 }, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, chitArea = { 25,50,100,100 }, windowArea = { 600,150,200,200 }, doorArea = { 230,150,270,300 },sofaArea2={ 280,510,200,234 };
+    Rectangle bookArea = { 340,300,240,40 }, compArea = { 0,200,240,150 }, sofaArea = { 500,510,150,234 }, coffinArea = { 780, 300, 220, 50 }, holeArea = { 840, 560, 220, 160 }, chitArea = { 25,500,100,100 }, windowArea = { 600,150,200,200 }, doorArea = { 230,150,270,300 },sofaArea2={ 280,510,200,234 };
 
     InitWindow(screenWidth, screenHeight, "ESCAPE ROOM");
     InitAudioDevice();
@@ -35,7 +35,7 @@ int main()
     Texture2D windowTexture = LoadTexture("windowhehe.png");
     Texture2D shelfTexture = LoadTexture("SHELF.png");
     Texture2D computerTexture = LoadTexture("comp.png");
-    Texture2D playerTexture = LoadTexture("GIRLPLAYER.png");///////////////////////////
+    Texture2D playerTexture = LoadTexture("GIRLPLAYER.png");
     Texture2D livesTexture = LoadTexture("LIVES.png");
     Texture2D sofaTexture = LoadTexture("COUCH.png");
     Texture2D skeletonTexture = LoadTexture("TIMESKELETON.png");
@@ -50,7 +50,7 @@ int main()
     Texture2D handscareTexture = LoadTexture("no escape msg jump.png");
     Texture2D displaychitTexture = LoadTexture("DISPLAYCHIT.png");
     Texture2D winTexture = LoadTexture("WIN.png");
-    Texture2D jumpscareTexture = LoadTexture("jumpscarewindow.png");
+    
     //sound
     Music mainmusic = LoadMusicStream("Eternal Terminal.mp3");
     Music riddlemusic = LoadMusicStream("riddle2.mp3");
@@ -995,9 +995,8 @@ int main()
                     {
                         if (resultW == 1)
                         {
-                           // DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
-                            DrawTexture(jumpscareTexture, 00, 00, WHITE);
-
+                            DrawText("YOU ARE CORRECT!", (screenWidth - MeasureText("YOU ARE CORRECT!", 36)) / 2, 420, 36, GREEN);
+                            
 
                         }
                         else if (resultW == 2)
@@ -1051,8 +1050,7 @@ int main()
     UnloadTexture(chitTexture);
     UnloadTexture(displaychitTexture);
     UnloadTexture(winTexture);
-    UnloadTexture(jumpscareTexture);
-
+   
     //MUSIC
     UnloadMusicStream(mainmusic);
     UnloadMusicStream(riddlemusic);
