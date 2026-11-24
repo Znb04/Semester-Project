@@ -1,0 +1,6 @@
+Libraries used in this project:
+
+1. raylib - version 6.2.0
+2. C++ Standard Library (string, cctype) - comes with the compiler
+
+Compiler/IDE: Visual Studio (write your version here, e.g. 2022)
