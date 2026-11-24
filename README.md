@@ -39,7 +39,7 @@ M	        |On game over and win screen: Return to main menu
 •	The image and sound files listed below, placed in the same as program file.
 
 5.	Installation and Setup
-•	Clone or download the repository: git clone https://github.com/Znb04/Semester-Project/tree/main
+•	Clone or download the repository: git clone https://github.com/Znb04/Semester-Project.git
 •	Open the project folder and double-click the .sln file to open it in Visual Studio.
 •	raylib is installed through NuGet and is restored automatically when you build. If it is not, right-click the solution in Solution Explorer and choose Restore NuGet Packages.
 •	At the top, set the configuration to Debug or Release and the platform to x64.
